@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    branches: [prod]
+
+permissions:
+  contents: write
+
+concurrency: release
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAP_DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read version
+        id: version
+        run: echo "version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)" >> "$GITHUB_OUTPUT"
+
+      - name: Check for an existing release
+        id: check
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::v${{ steps.version.outputs.version }} is already released. Bump CFBundleShortVersionString in Resources/Info.plist to publish a new release."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test
+        if: steps.check.outputs.exists == 'false'
+        run: make test
+
+      - name: Build
+        if: steps.check.outputs.exists == 'false'
+        run: make app
+
+      - name: Publish release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" dist/*.zip \
+            --target "$GITHUB_SHA" \
+            --title "Stillhands ${{ steps.version.outputs.version }}" \
+            --generate-notes
+
+      - name: Update Homebrew tap
+        if: steps.check.outputs.exists == 'false' && env.TAP_DEPLOY_KEY != ''
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          SHA256=$(shasum -a 256 "dist/Stillhands-$VERSION.zip" | cut -d' ' -f1)
+          KEY=$(mktemp)
+          echo "$TAP_DEPLOY_KEY" > "$KEY"
+          export GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+          git clone git@github.com:fukislim/homebrew-tap.git tap
+          mkdir -p tap/Casks
+          scripts/make-cask.sh "$VERSION" "$SHA256" > tap/Casks/stillhands.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/stillhands.rb
+          git commit -m "stillhands $VERSION"
+          git push
+          rm -f "$KEY"
