@@ -127,7 +127,7 @@ You need Swift 6 (Xcode or just the Command Line Tools). Releases are built on G
 
 ```sh
 make signing
-make test
+make check
 make run
 make docs
 make icon
@@ -136,10 +136,14 @@ make icon
 | Command | Does |
 |---|---|
 | `make signing` | Once per machine: a local signing certificate in its own keychain file, so macOS keeps Accessibility access across rebuilds. Its random password goes into the git-ignored `.env` (see `.env.example`). |
-| `make test` | Unit tests. |
+| `make check` | Build with warnings as errors, then the unit tests. |
+| `make test` | Unit tests only. |
 | `make run` | Builds `dist/Stillhands.app` (universal) and opens it. |
 | `make docs` | Re-renders the screenshots in `docs/images`. |
 | `make icon` | Re-draws the app icon, `assets/logo.png` and the README banners from `assets/palm-down-hand.svg`. |
+| `make clean` | Removes `.build` and `dist`. |
+
+`make` on its own lists all targets.
 
 ```
 Sources/StillhandsCore   pure logic: shortcuts, reserved combos, the event policy (unit-tested)
@@ -157,7 +161,7 @@ The same run updates the Homebrew cask in [`fukislim/homebrew-tap`](https://gith
 
 ## Contributing
 
-Issues and pull requests are welcome. Stillhands is deliberately small: new settings need a very good reason. Run `make test` before opening a PR.
+Issues and pull requests are welcome. Stillhands is deliberately small: new settings need a very good reason. Run `make check` before opening a PR.
 
 ## License
 

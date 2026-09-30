@@ -11,5 +11,5 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: swift --version
-      - run: make test
+      - run: make check
       - run: make app
