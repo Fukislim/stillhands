@@ -9,6 +9,7 @@ final class AppState: ObservableObject {
     @Published var lockClicks: Bool { didSet { save(lockClicks, "lockClicks") } }
     @Published var lockPointer: Bool { didSet { save(lockPointer, "lockPointer") } }
     @Published var blackOut: Bool { didSet { save(blackOut, "blackOut") } }
+    @Published var unlockWithTouchID: Bool { didSet { save(unlockWithTouchID, "unlockWithTouchID") } }
     @Published var autoUnlockMinutes: Int { didSet { save(autoUnlockMinutes, "autoUnlockMinutes") } }
     @Published var iconStyle: IconStyle { didSet { save(iconStyle.rawValue, "iconStyle") } }
     @Published var didOnboard: Bool { didSet { save(didOnboard, "didOnboard") } }
@@ -31,6 +32,7 @@ final class AppState: ObservableObject {
         lockClicks = store?.object(forKey: "lockClicks") as? Bool ?? true
         lockPointer = store?.object(forKey: "lockPointer") as? Bool ?? true
         blackOut = store?.object(forKey: "blackOut") as? Bool ?? false
+        unlockWithTouchID = store?.object(forKey: "unlockWithTouchID") as? Bool ?? false
         autoUnlockMinutes = store?.object(forKey: "autoUnlockMinutes") as? Int ?? 30
         iconStyle = store?.string(forKey: "iconStyle").flatMap(IconStyle.init(rawValue:)) ?? .hand
         didOnboard = store?.bool(forKey: "didOnboard") ?? false

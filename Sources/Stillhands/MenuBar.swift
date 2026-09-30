@@ -78,10 +78,13 @@ final class MenuBar: NSObject, NSMenuDelegate {
         autoUnlock.isEnabled = unlocked
         autoUnlock.submenu = autoUnlockMenu()
         menu.addItem(autoUnlock)
+        menu.addItem(toggle("Require Touch ID", \.unlockWithTouchID, enabled: unlocked))
         menu.addItem(ActionItem("Settings…", key: ",", handler: actions.openSettings))
 
         menu.addItem(.separator())
-        menu.addItem(ActionItem("Quit Stillhands", key: "q") { NSApp.terminate(nil) })
+        let quit = ActionItem("Quit Stillhands", key: "q") { NSApp.terminate(nil) }
+        quit.isEnabled = unlocked
+        menu.addItem(quit)
     }
 
     private func header(_ title: String) -> NSMenuItem {

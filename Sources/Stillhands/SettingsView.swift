@@ -98,6 +98,9 @@ struct SettingsView: View {
             Text(recorder.hint ?? "Never shown while locked.")
                 .font(.caption)
                 .foregroundStyle(recorder.hint == nil ? Color.secondary : Color.red)
+
+            SwitchRow("Require Touch ID", symbol: "touchid", isOn: $state.unlockWithTouchID)
+                .disabled(state.isLocked)
         }
     }
 

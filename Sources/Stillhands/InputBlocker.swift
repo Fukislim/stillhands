@@ -5,11 +5,16 @@ import IOKit.pwr_mgt
 import StillhandsCore
 
 final class InputBlocker {
-    enum Reason { case shortcut, button, autoUnlock }
+    enum Reason {
+        case shortcut, button, autoUnlock, quit
+
+        var needsTouchID: Bool { self == .shortcut || self == .button }
+    }
 
     private let state: AppState
     private let hud: HUD
     private let cover: ScreenCover
+    private let touchID = TouchID()
     private var policy: EventPolicy
     private var tap: CFMachPort?
     private var lockPoint = CGPoint.zero
@@ -50,7 +55,7 @@ final class InputBlocker {
     }
 
     func stop() {
-        if policy.isLocked { setLocked(false, reason: .button) }
+        setLocked(false, reason: .quit)
         if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
         tap = nil
     }
@@ -95,7 +100,27 @@ final class InputBlocker {
 
     func setLocked(_ on: Bool, reason: Reason) {
         guard on != policy.isLocked else { return }
-        on ? lock() : unlock(reason: reason)
+        if on {
+            lock()
+        } else if reason.needsTouchID && state.unlockWithTouchID {
+            verifyThenUnlock()
+        } else {
+            unlock(message: reason == .autoUnlock ? "Unlocked (safety timer)" : "Unlocked")
+        }
+    }
+
+    private func verifyThenUnlock() {
+        cover.hide()
+        touchID.verify { [weak self] outcome in
+            guard let self, policy.isLocked else { return }
+            switch outcome {
+            case .verified: unlock(message: "Unlocked")
+            case .unavailable: unlock(message: "Unlocked (Touch ID unavailable)")
+            case .failed:
+                if state.blackOut { cover.show() }
+                hud.show("Still locked", symbol: "lock.fill")
+            }
+        }
     }
 
     private func lock() {
@@ -136,7 +161,8 @@ final class InputBlocker {
         hud.show("Input locked", symbol: "lock.fill")
     }
 
-    private func unlock(reason: Reason) {
+    private func unlock(message: String) {
+        touchID.cancel()
         policy.isLocked = false
         policy.active = []
 
@@ -151,6 +177,6 @@ final class InputBlocker {
         cover.hide()
 
         state.isLocked = false
-        hud.show(reason == .autoUnlock ? "Unlocked (safety timer)" : "Unlocked", symbol: "lock.open.fill")
+        hud.show(message, symbol: "lock.open.fill")
     }
 }

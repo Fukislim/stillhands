@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Require Touch ID:** after the shortcut, unlocking also needs your fingerprint. The menu's Unlock item asks too; the safety timer does not. Falls back to the shortcut alone when no sensor is usable.
+
+### Changed
+- **Quit Stillhands** is disabled while locked.
+
 ## [0.1.0] - 2026-09-25
 
 ### Added
