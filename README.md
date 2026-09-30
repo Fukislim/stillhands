@@ -73,6 +73,7 @@ A ✋ appears in your menu bar. It changes while locked (a crossed-out hand, by 
 - **Menu bar icon:** pick a style right in the ✋ menu, from a basic row (hand, spread hand, padlock, eye) and a funky row (alien, genie lamp, cat, Eye of Horus). Each option previews its unlocked and locked look side by side.
 - **Settings…** (⌘,) opens the full window: record or randomize the shortcut, open at login.
 - **Forgot it?** The safety timer unlocks on its own (30 minutes by default).
+- **Who touched it?** With **Photo when touched** on, the webcam takes a photo when someone types, clicks or moves the pointer while locked. When you unlock, the banner says how often it was touched, and the ✋ menu offers **Show Photos of Last Lock…**.
 
 On first launch Stillhands picks a **random shortcut** such as ⌃⌥⇧J. It's shown next to **Lock Now** in the menu. Remember it: it is never shown on screen while locked, and the menu hides it while locked too.
 
@@ -95,6 +96,7 @@ These are all the settings there are. The shortcut and Open at login live in Set
 | Clicks & scrolling | On | Blocks mouse buttons, taps, scrolling and trackpad gestures. |
 | Pointer movement | On | Freezes the cursor where it is. |
 | Black out screens | Off | Also covers every display with black while locked. |
+| Photo when touched | Off | Takes a webcam photo when someone touches the Mac while locked: on the first touch, then at most every 30 s, up to 20 per lock. Saved to `~/Pictures/Stillhands/<day>/<time>.jpg` and deleted after 3 months. |
 | Shortcut | Random | **Record** your own (at least two modifier keys) or roll a new one with 🎲. |
 | Require Touch ID | Off | After the shortcut, unlocking also needs your fingerprint. Without a usable sensor (lid closed, keyboard without Touch ID) the shortcut alone unlocks. |
 | Auto-unlock after | 30 min | Safety net: unlocks by itself, also without Touch ID. Off / 5 / 15 / 30 / 60 min. |
@@ -107,7 +109,8 @@ These are all the settings there are. The shortcut and Open at login live in Set
 - **Never shown while locked.** The "Input locked" banner doesn't reveal how to unlock.
 - **No surprises with passwords.** Stillhands refuses to lock while a password field is focused (see below).
 - **Touch ID, if you want it.** With **Require Touch ID** on, knowing the shortcut is not enough. The fingerprint check is done by macOS; Stillhands only hears yes or no. Quit is disabled while locked. Keep both **Keyboard** and **Clicks & scrolling** locked, though: with either one free, someone can still force-quit Stillhands, and input comes back.
-- **Nothing leaves your Mac.** No network access, no analytics. Accessibility access is used only to block input.
+- **Photos stay local.** Photos are plain JPEGs in `~/Pictures/Stillhands`, removed after 3 months. The camera light is on while a photo is taken.
+- **Nothing leaves your Mac.** No network access, no analytics. Accessibility access is used only to block input, Camera access only for **Photo when touched**.
 
 ## Known limits
 
@@ -115,7 +118,7 @@ These are all the settings there are. The shortcut and Open at login live in Set
 - **Touch ID prompt.** With **Black out screens** on, the black-out lifts while the prompt is shown, so you can see it. While clicks and keys are locked, the prompt's Cancel button can't be used either; it closes by itself after 30 seconds and Stillhands stays locked. After too many failed fingers macOS locks Touch ID until you enter your password, so Stillhands stays locked until the safety timer.
 - **Hardware buttons.** The power / Touch ID button and a forced restart can't be blocked. That's also your last-resort escape.
 - **Key labels use the US layout.** On other layouts the shortcut is the same physical keys, but the label may show a different character.
-- **Release builds are ad-hoc signed** (no paid Apple Developer ID). Updating to a new release (also via `brew upgrade`) therefore asks for Accessibility again: remove Stillhands from the Accessibility list with **−** and add it again. Until you do, the ✋ in the menu bar is dimmed.
+- **Release builds are ad-hoc signed** (no paid Apple Developer ID). Updating to a new release (also via `brew upgrade`) therefore asks for Accessibility again: remove Stillhands from the Accessibility list with **−** and add it again. Until you do, the ✋ in the menu bar is dimmed. With **Photo when touched** on, macOS asks for Camera access again too.
 - **Fails open.** If Stillhands quits or crashes while locked, input comes straight back.
 
 ## Build from source

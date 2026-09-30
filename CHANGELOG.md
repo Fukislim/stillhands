@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 - **Require Touch ID:** after the shortcut, unlocking also needs your fingerprint. The menu's Unlock item asks too; the safety timer does not. Falls back to the shortcut alone when no sensor is usable.
+- **Photo when touched:** a webcam photo when someone touches the Mac while locked (first touch, then at most every 30 s, up to 20 per lock), saved to `~/Pictures/Stillhands/<day>/` and deleted after 3 months.
+- The unlock banner says how often the Mac was touched while locked, and the menu offers **Show Photos of Last Lock…**.
 
 ### Changed
 - **Quit Stillhands** is disabled while locked.

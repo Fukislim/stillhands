@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Combine
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var state: AppState!
@@ -7,10 +8,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settings: SettingsWindow!
     private var menuBar: MenuBar!
     private var permissionTimer: Timer?
+    private var photoAccess: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         state = AppState(store: .standard)
-        blocker = InputBlocker(state: state, hud: HUD(), cover: ScreenCover())
+        let camera = TouchCamera()
+        camera.prune()
+        blocker = InputBlocker(state: state, hud: HUD(), cover: ScreenCover(), camera: camera)
         settings = SettingsWindow(state: state)
         menuBar = MenuBar(state: state, actions: MenuBar.Actions(
             lock: { [blocker] in blocker?.setLocked(true, reason: .button) },
@@ -18,6 +22,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             openSettings: { [settings] in settings?.show() }
         ))
         menuBar.install()
+        photoAccess = state.$photoOnTouch.filter { $0 }.sink { [weak self] _ in
+            TouchCamera.requestAccess { granted in
+                guard !granted else { return }
+                self?.state.photoOnTouch = false
+                TouchCamera.openPrivacySettings()
+            }
+        }
 
         if AXIsProcessTrusted() {
             state.axTrusted = true

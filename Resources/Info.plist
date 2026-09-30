@@ -24,6 +24,8 @@
 	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
+	<key>NSCameraUsageDescription</key>
+	<string>With "Photo when touched" on, Stillhands takes a webcam photo when someone touches your Mac while it's locked. Photos stay on your Mac.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Fukislim. MIT License.</string>
 </dict>

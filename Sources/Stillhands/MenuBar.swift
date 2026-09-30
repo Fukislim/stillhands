@@ -55,6 +55,9 @@ final class MenuBar: NSObject, NSMenuDelegate {
             }
             lock.isEnabled = state.canLock
             menu.addItem(lock)
+            if state.photosWhileLocked > 0 {
+                menu.addItem(ActionItem("Show \(state.photosWhileLocked == 1 ? "Photo" : "Photos") of Last Lock…", handler: TouchCamera.showPhotos))
+            }
         } else {
             menu.addItem(ActionItem("Unlock", handler: actions.unlock))
             if let at = state.autoUnlockAt {
@@ -68,6 +71,7 @@ final class MenuBar: NSObject, NSMenuDelegate {
         menu.addItem(toggle("Clicks & Scrolling", \.lockClicks, enabled: unlocked))
         menu.addItem(toggle("Pointer Movement", \.lockPointer, enabled: unlocked))
         menu.addItem(toggle("Black Out Screens", \.blackOut, enabled: unlocked))
+        menu.addItem(toggle("Photo When Touched", \.photoOnTouch, enabled: unlocked))
 
         menu.addItem(.separator())
         menu.addItem(header("Menu Bar Icon"))

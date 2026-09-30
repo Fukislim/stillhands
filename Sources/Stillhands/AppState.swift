@@ -10,11 +10,14 @@ final class AppState: ObservableObject {
     @Published var lockPointer: Bool { didSet { save(lockPointer, "lockPointer") } }
     @Published var blackOut: Bool { didSet { save(blackOut, "blackOut") } }
     @Published var unlockWithTouchID: Bool { didSet { save(unlockWithTouchID, "unlockWithTouchID") } }
+    @Published var photoOnTouch: Bool { didSet { save(photoOnTouch, "photoOnTouch") } }
     @Published var autoUnlockMinutes: Int { didSet { save(autoUnlockMinutes, "autoUnlockMinutes") } }
     @Published var iconStyle: IconStyle { didSet { save(iconStyle.rawValue, "iconStyle") } }
     @Published var didOnboard: Bool { didSet { save(didOnboard, "didOnboard") } }
 
     @Published var isLocked = false
+    @Published var touchesWhileLocked = 0
+    @Published var photosWhileLocked = 0
     @Published var autoUnlockAt: Date?
     @Published var axTrusted = false
     @Published var tapError: String?
@@ -33,6 +36,7 @@ final class AppState: ObservableObject {
         lockPointer = store?.object(forKey: "lockPointer") as? Bool ?? true
         blackOut = store?.object(forKey: "blackOut") as? Bool ?? false
         unlockWithTouchID = store?.object(forKey: "unlockWithTouchID") as? Bool ?? false
+        photoOnTouch = store?.object(forKey: "photoOnTouch") as? Bool ?? false
         autoUnlockMinutes = store?.object(forKey: "autoUnlockMinutes") as? Int ?? 30
         iconStyle = store?.string(forKey: "iconStyle").flatMap(IconStyle.init(rawValue:)) ?? .hand
         didOnboard = store?.bool(forKey: "didOnboard") ?? false

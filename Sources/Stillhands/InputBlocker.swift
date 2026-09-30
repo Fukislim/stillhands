@@ -14,7 +14,9 @@ final class InputBlocker {
     private let state: AppState
     private let hud: HUD
     private let cover: ScreenCover
+    private let camera: TouchCamera
     private let touchID = TouchID()
+    private var touchLog = TouchLog()
     private var policy: EventPolicy
     private var tap: CFMachPort?
     private var lockPoint = CGPoint.zero
@@ -22,10 +24,12 @@ final class InputBlocker {
     private var autoUnlockTimer: Timer?
     private var bag: Set<AnyCancellable> = []
 
-    init(state: AppState, hud: HUD, cover: ScreenCover) {
+    init(state: AppState, hud: HUD, cover: ScreenCover, camera: TouchCamera) {
         self.state = state
         self.hud = hud
         self.cover = cover
+        self.camera = camera
+        camera.onSaved = { [weak state] in state?.photosWhileLocked += 1 }
         policy = EventPolicy(shortcut: state.shortcut)
         state.$shortcut.sink { [weak self] in self?.policy.shortcut = $0 }.store(in: &bag)
         state.$isRecording.sink { [weak self] in self?.policy.isRecording = $0 }.store(in: &bag)
@@ -68,9 +72,13 @@ final class InputBlocker {
         switch policy.decide(Self.kind(of: type, event)) {
         case .pass:
             return Unmanaged.passUnretained(event)
-        case .swallow, .block:
+        case .swallow:
+            return nil
+        case .block:
+            noteTouch()
             return nil
         case .blockAndWarp:
+            noteTouch()
             CGWarpMouseCursorPosition(lockPoint)
             return nil
         case .toggle:
@@ -96,6 +104,12 @@ final class InputBlocker {
         case 18, 19, 20, 29, 30, 31, 32, 34: return .gesture
         default: return .other
         }
+    }
+
+    private func noteTouch() {
+        let snap = touchLog.touch(at: Date())
+        if state.touchesWhileLocked != touchLog.touches { state.touchesWhileLocked = touchLog.touches }
+        if snap && state.photoOnTouch { camera.snap() }
     }
 
     func setLocked(_ on: Bool, reason: Reason) {
@@ -137,6 +151,10 @@ final class InputBlocker {
 
         policy.active = categories
         policy.isLocked = true
+        touchLog = TouchLog()
+        state.touchesWhileLocked = 0
+        state.photosWhileLocked = 0
+        camera.prune()
 
         if categories.contains(.pointer) {
             lockPoint = CGEvent(source: nil)?.location ?? .zero
@@ -177,6 +195,14 @@ final class InputBlocker {
         cover.hide()
 
         state.isLocked = false
-        hud.show(message, symbol: "lock.open.fill")
+        hud.show(message + Self.touchSummary(touchLog.touches), symbol: "lock.open.fill")
+    }
+
+    private static func touchSummary(_ touches: Int) -> String {
+        switch touches {
+        case 0: ""
+        case 1: ", touched once while locked"
+        default: ", touched \(touches)× while locked"
+        }
     }
 }
