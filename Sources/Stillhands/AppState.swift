@@ -16,8 +16,7 @@ final class AppState: ObservableObject {
     @Published var didOnboard: Bool { didSet { save(didOnboard, "didOnboard") } }
 
     @Published var isLocked = false
-    @Published var touchesWhileLocked = 0
-    @Published var photosWhileLocked = 0
+    var photosWhileLocked = 0
     @Published var autoUnlockAt: Date?
     @Published var axTrusted = false
     @Published var tapError: String?

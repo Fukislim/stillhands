@@ -17,8 +17,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         blocker = InputBlocker(state: state, hud: HUD(), cover: ScreenCover(), camera: camera)
         settings = SettingsWindow(state: state)
         menuBar = MenuBar(state: state, actions: MenuBar.Actions(
-            lock: { [blocker] in blocker?.setLocked(true, reason: .button) },
-            unlock: { [blocker] in blocker?.setLocked(false, reason: .button) },
+            lock: { [blocker] in blocker?.lock() },
+            unlock: { [blocker] in blocker?.requestUnlock() },
             openSettings: { [settings] in settings?.show() }
         ))
         menuBar.install()
@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             TouchCamera.requestAccess { granted in
                 guard !granted else { return }
                 self?.state.photoOnTouch = false
-                TouchCamera.openPrivacySettings()
+                PrivacyPane.camera.open()
             }
         }
 

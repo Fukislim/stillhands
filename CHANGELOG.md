@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- The photo folder is readable only by your user account and left out of Time Machine backups.
+
+### Fixed
+- The safety timer also fires while a menu is open.
+- The webcam turns off after 10 s if it never delivers a usable frame, instead of staying on until the next touch.
+- A photo still saving when a new lock starts no longer counts toward the new lock's **Show Photos of Last Lock…**.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

@@ -12,7 +12,6 @@ import Testing
     }
 
     static let cases: [Case] = [
-        Case(name: "first touch takes a photo", offsets: [0], photos: [true], touches: 1),
         Case(name: "one burst takes one photo", offsets: [0, 0.5, 1, 1.5], photos: [true, false, false, false], touches: 1),
         Case(name: "a pause starts a new touch", offsets: [0, 2, 5], photos: [true, false, false], touches: 3),
         Case(name: "next photo after the interval", offsets: [0, 29.9, 30], photos: [true, false, true], touches: 2),
@@ -23,7 +22,6 @@ import Testing
         let start = Date(timeIntervalSince1970: 0)
         #expect(c.offsets.map { log.touch(at: start.addingTimeInterval($0)) } == c.photos)
         #expect(log.touches == c.touches)
-        #expect(log.photos == c.photos.filter { $0 }.count)
     }
 
     @Test func photosAreCapped() {

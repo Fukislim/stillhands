@@ -5,18 +5,12 @@ import IOKit.pwr_mgt
 import StillhandsCore
 
 final class InputBlocker {
-    enum Reason {
-        case shortcut, button, autoUnlock, quit
-
-        var needsTouchID: Bool { self == .shortcut || self == .button }
-    }
-
     private let state: AppState
     private let hud: HUD
     private let cover: ScreenCover
     private let camera: TouchCamera
     private let touchID = TouchID()
-    private var touchLog = TouchLog()
+    private var session = LockSession()
     private var policy: EventPolicy
     private var tap: CFMachPort?
     private var lockPoint = CGPoint.zero
@@ -29,8 +23,8 @@ final class InputBlocker {
         self.hud = hud
         self.cover = cover
         self.camera = camera
-        camera.onSaved = { [weak state] in state?.photosWhileLocked += 1 }
         policy = EventPolicy(shortcut: state.shortcut)
+        camera.onSaved = { [weak self] in self?.photoSaved(takenAt: $0) }
         state.$shortcut.sink { [weak self] in self?.policy.shortcut = $0 }.store(in: &bag)
         state.$isRecording.sink { [weak self] in self?.policy.isRecording = $0 }.store(in: &bag)
     }
@@ -59,7 +53,7 @@ final class InputBlocker {
     }
 
     func stop() {
-        setLocked(false, reason: .quit)
+        perform(session.handle(.quit))
         if let tap { CGEvent.tapEnable(tap: tap, enable: false) }
         tap = nil
     }
@@ -82,7 +76,7 @@ final class InputBlocker {
             CGWarpMouseCursorPosition(lockPoint)
             return nil
         case .toggle:
-            setLocked(!policy.isLocked, reason: .shortcut)
+            session.phase == .unlocked ? lock() : requestUnlock()
             return nil
         }
     }
@@ -107,38 +101,38 @@ final class InputBlocker {
     }
 
     private func noteTouch() {
-        let snap = touchLog.touch(at: Date())
-        if state.touchesWhileLocked != touchLog.touches { state.touchesWhileLocked = touchLog.touches }
-        if snap && state.photoOnTouch { camera.snap() }
+        if session.touch(at: Date()) && state.photoOnTouch { camera.snap() }
     }
 
-    func setLocked(_ on: Bool, reason: Reason) {
-        guard on != policy.isLocked else { return }
-        if on {
-            lock()
-        } else if reason.needsTouchID && state.unlockWithTouchID {
-            verifyThenUnlock()
-        } else {
-            unlock(message: reason == .autoUnlock ? "Unlocked (safety timer)" : "Unlocked")
-        }
+    private func photoSaved(takenAt: Date) {
+        session.photoSaved(takenAt: takenAt)
+        state.photosWhileLocked = session.savedPhotos
     }
 
-    private func verifyThenUnlock() {
-        cover.hide()
-        touchID.verify { [weak self] outcome in
-            guard let self, policy.isLocked else { return }
-            switch outcome {
-            case .verified: unlock(message: "Unlocked")
-            case .unavailable: unlock(message: "Unlocked (Touch ID unavailable)")
-            case .failed:
-                if state.blackOut { cover.show() }
-                hud.show("Still locked", symbol: "lock.fill")
+    func requestUnlock() {
+        perform(session.handle(.unlockRequested))
+    }
+
+    private func perform(_ effect: LockSession.Effect) {
+        switch effect {
+        case .none:
+            break
+        case .verify:
+            cover.hide()
+            touchID.verify { [weak self] result in
+                guard let self else { return }
+                perform(session.handle(.touchID(result)))
             }
+        case .stillLocked:
+            if state.blackOut { cover.show() }
+            hud.show("Still locked", symbol: "lock.fill")
+        case let .unlock(message):
+            unlock(message: message)
         }
     }
 
-    private func lock() {
-        guard tap != nil else { return }
+    func lock() {
+        guard tap != nil, session.phase == .unlocked else { return }
         let categories = state.activeCategories
         if categories.isEmpty {
             hud.show("Nothing selected to lock", symbol: "exclamationmark.triangle.fill")
@@ -151,8 +145,7 @@ final class InputBlocker {
 
         policy.active = categories
         policy.isLocked = true
-        touchLog = TouchLog()
-        state.touchesWhileLocked = 0
+        session.lock(at: Date(), requireTouchID: state.unlockWithTouchID)
         state.photosWhileLocked = 0
         camera.prune()
 
@@ -169,9 +162,12 @@ final class InputBlocker {
         if state.autoUnlockMinutes > 0 {
             let seconds = TimeInterval(state.autoUnlockMinutes * 60)
             state.autoUnlockAt = Date().addingTimeInterval(seconds)
-            autoUnlockTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
-                self?.setLocked(false, reason: .autoUnlock)
+            let timer = Timer(timeInterval: seconds, repeats: false) { [weak self] _ in
+                guard let self else { return }
+                perform(session.handle(.safetyTimer))
             }
+            RunLoop.main.add(timer, forMode: .common)
+            autoUnlockTimer = timer
         }
         if state.blackOut { cover.show() }
 
@@ -195,14 +191,6 @@ final class InputBlocker {
         cover.hide()
 
         state.isLocked = false
-        hud.show(message + Self.touchSummary(touchLog.touches), symbol: "lock.open.fill")
-    }
-
-    private static func touchSummary(_ touches: Int) -> String {
-        switch touches {
-        case 0: ""
-        case 1: ", touched once while locked"
-        default: ", touched \(touches)× while locked"
-        }
+        hud.show(message, symbol: "lock.open.fill")
     }
 }

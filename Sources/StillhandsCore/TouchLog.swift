@@ -1,12 +1,12 @@
 import Foundation
 
-public struct TouchLog: Equatable, Sendable {
+public struct TouchLog: Sendable {
     public static let burstGap: TimeInterval = 2
     public static let photoInterval: TimeInterval = 30
     public static let maxPhotos = 20
 
     public private(set) var touches = 0
-    public private(set) var photos = 0
+    private var photos = 0
     private var lastTouch: Date?
     private var lastPhoto: Date?
 

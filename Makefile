@@ -19,7 +19,7 @@ help:
 
 check:
 	swift build -Xswiftc -warnings-as-errors
-	swift test $(TEST_FLAGS)
+	$(MAKE) test
 
 build:
 	swift build

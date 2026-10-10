@@ -43,7 +43,7 @@ final class MenuBar: NSObject, NSMenuDelegate {
         let unlocked = !state.isLocked
 
         if !state.axTrusted || state.tapError != nil {
-            menu.addItem(ActionItem("Grant Accessibility Access…", handler: SettingsWindow.openAccessibilitySettings))
+            menu.addItem(ActionItem("Grant Accessibility Access…", handler: PrivacyPane.accessibility.open))
             menu.addItem(.separator())
         }
 

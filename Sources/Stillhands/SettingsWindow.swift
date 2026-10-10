@@ -14,7 +14,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
     func show() {
         if window == nil {
             let host = NSHostingController(rootView: SettingsView(
-                state: state, recorder: recorder, openAccessibility: Self.openAccessibilitySettings
+                state: state, recorder: recorder, openAccessibility: PrivacyPane.accessibility.open
             ))
             let w = NSWindow(contentViewController: host)
             w.title = "Stillhands Settings"
@@ -31,9 +31,5 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         recorder.stop()
-    }
-
-    static func openAccessibilitySettings() {
-        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
     }
 }

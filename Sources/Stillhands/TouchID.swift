@@ -1,14 +1,12 @@
 import Foundation
 import LocalAuthentication
+import StillhandsCore
 
 final class TouchID {
-    enum Outcome { case verified, unavailable, failed }
-
     static let timeout: TimeInterval = 30
     private var context: LAContext?
 
-    func verify(_ done: @escaping (Outcome) -> Void) {
-        guard context == nil else { return }
+    func verify(_ done: @escaping (LockSession.Verification) -> Void) {
         let ctx = LAContext()
         ctx.localizedFallbackTitle = ""
         var error: NSError?
@@ -21,6 +19,7 @@ final class TouchID {
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.timeout) { [weak ctx] in ctx?.invalidate() }
         ctx.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "unlock your keyboard and mouse") { ok, _ in
             DispatchQueue.main.async {
+                guard self.context === ctx else { return }
                 self.context = nil
                 done(ok ? .verified : .failed)
             }
@@ -29,5 +28,6 @@ final class TouchID {
 
     func cancel() {
         context?.invalidate()
+        context = nil
     }
 }

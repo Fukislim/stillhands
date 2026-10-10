@@ -109,12 +109,12 @@ These are all the settings there are. The shortcut and Open at login live in Set
 - **Never shown while locked.** The "Input locked" banner doesn't reveal how to unlock.
 - **No surprises with passwords.** Stillhands refuses to lock while a password field is focused (see below).
 - **Touch ID, if you want it.** With **Require Touch ID** on, knowing the shortcut is not enough. The fingerprint check is done by macOS; Stillhands only hears yes or no. Quit is disabled while locked. Keep both **Keyboard** and **Clicks & scrolling** locked, though: with either one free, someone can still force-quit Stillhands, and input comes back.
-- **Photos stay local.** Photos are plain JPEGs in `~/Pictures/Stillhands`, removed after 3 months. The camera light is on while a photo is taken.
+- **Photos stay local.** Photos are plain JPEGs in `~/Pictures/Stillhands`, readable only by your user account, left out of Time Machine backups, and removed after 3 months. The camera light is on while a photo is taken. These are photos of other people, so check the privacy rules where you use them (in the EU: the GDPR).
 - **Nothing leaves your Mac.** No network access, no analytics. Accessibility access is used only to block input, Camera access only for **Photo when touched**.
 
 ## Known limits
 
-- **Password fields.** While a password field has focus, macOS turns on Secure Input and hides keystrokes from all apps, including Stillhands. Stillhands therefore won't lock at that moment, because it couldn't see your unlock shortcut.
+- **Password fields.** While a password field has focus, macOS turns on Secure Input and hides keystrokes from all apps, including Stillhands. Stillhands therefore won't lock at that moment, because it couldn't see your unlock shortcut. For the same reason, if a password field takes focus while locked, typing reaches that field.
 - **Touch ID prompt.** With **Black out screens** on, the black-out lifts while the prompt is shown, so you can see it. While clicks and keys are locked, the prompt's Cancel button can't be used either; it closes by itself after 30 seconds and Stillhands stays locked. After too many failed fingers macOS locks Touch ID until you enter your password, so Stillhands stays locked until the safety timer.
 - **Hardware buttons.** The power / Touch ID button and a forced restart can't be blocked. That's also your last-resort escape.
 - **Key labels use the US layout.** On other layouts the shortcut is the same physical keys, but the label may show a different character.

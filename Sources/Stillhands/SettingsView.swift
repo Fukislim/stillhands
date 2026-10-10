@@ -68,8 +68,8 @@ struct SettingsView: View {
             SwitchRow("Photo when touched", symbol: "camera", isOn: $state.photoOnTouch)
             if state.photoOnTouch {
                 HStack(spacing: 4) {
-                    Text("Webcam photo, kept 3 months in")
-                    Button("~/Pictures/Stillhands", action: TouchCamera.showPhotos)
+                    Text("Webcam photo, kept \(PhotoArchive.keepMonths) months in")
+                    Button((TouchCamera.folder.path as NSString).abbreviatingWithTildeInPath, action: TouchCamera.showPhotos)
                         .buttonStyle(.link)
                 }
                 .font(.caption)
